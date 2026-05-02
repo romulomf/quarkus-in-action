@@ -1,0 +1,5 @@
+quarkus:
+  application:
+    name: Inventory Service
+  http:
+    port: 8083

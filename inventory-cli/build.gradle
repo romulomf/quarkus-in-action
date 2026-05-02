@@ -1,0 +1,74 @@
+plugins {
+    id 'java'
+    id 'io.quarkus'
+    id 'eclipse-wtp'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation 'io.quarkus:quarkus-config-yaml'
+    implementation 'io.quarkus:quarkus-grpc'
+    implementation 'io.quarkus:quarkus-arc'
+    testImplementation 'io.quarkus:quarkus-junit'
+}
+
+group = 'org.acome'
+version = '0.1.0-SNAPSHOT'
+
+java {
+    toolchain {
+    	languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+eclipse {
+    project {
+        name = 'inventory-cli'
+        comment = 'Acme Inventory CLI'
+    }
+    
+    jdt {
+        sourceCompatibility = 25
+        targetCompatibility = 25
+    }
+
+    classpath {
+        downloadSources = false
+        downloadJavadoc = true
+        
+        /**
+		 * É necessário apenas adicionar ao classpath da IDE os diretórios do código fonte GRPC gerados,
+		 * pois o build tool Gradle e plugin quarkus já tratam disso corretamente.
+		 */
+        file {
+            whenMerged { classpath ->
+                classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.SourceFolder('build/classes/java/quarkus-generated-sources/grpc', null))
+                classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.SourceFolder('build/classes/java/quarkus-test-generated-sources/grpc', null))
+            }
+        }
+    }
+}
+
+tasks.named('eclipse') {
+    doLast {
+        def prefsDir = file(".settings")
+        if (!prefsDir.exists())
+            prefsDir.mkdirs()
+        def resourcePrefs = file(".settings/org.eclipse.core.resources.prefs")
+        resourcePrefs.text = "eclipse.preferences.version=1\nencoding/<project>=UTF-8"
+    }
+}

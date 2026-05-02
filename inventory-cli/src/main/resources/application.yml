@@ -1,0 +1,6 @@
+quarkus:
+  grpc:
+    clients:
+      inventory:
+        host: localhost
+        port: 9000

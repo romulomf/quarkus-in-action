@@ -1,0 +1,5 @@
+quarkus:
+  application:
+    name: Rental Service
+  http:
+    port: 8082

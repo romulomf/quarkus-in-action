@@ -1,0 +1,66 @@
+plugins {
+    id 'java'
+    id 'io.quarkus'
+    id 'eclipse-wtp'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation 'io.quarkus:quarkus-config-yaml'
+    implementation 'io.quarkus:quarkus-rest-jackson'
+    implementation 'io.quarkus:quarkus-arc'
+    testImplementation 'io.quarkus:quarkus-junit'
+}
+
+group = 'org.acme'
+version = '0.1.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+eclipse {
+	project {
+		name = 'rental-service'
+		comment = 'Acme Rental Service'
+	}
+	
+	jdt {
+		sourceCompatibility = 25
+		targetCompatibility = 25
+	}
+
+	classpath {
+		downloadSources = false
+		downloadJavadoc = true
+	}
+}
+
+tasks.named('eclipse') {
+	doLast {
+		def prefsDir = file(".settings")
+		if (!prefsDir.exists())
+			prefsDir.mkdirs()
+		def resourcePrefs = file(".settings/org.eclipse.core.resources.prefs")
+		resourcePrefs.text = "eclipse.preferences.version=1\nencoding/<project>=UTF-8"
+	}
+}

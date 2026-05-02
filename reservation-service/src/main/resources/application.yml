@@ -1,0 +1,8 @@
+quarkus:
+  application:
+    name: Reservation Service
+  http:
+    port: 8081
+  smallrye-graphql-client:
+    inventory:
+      url: http://localhost:8083/graphql
