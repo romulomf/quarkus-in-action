@@ -18,6 +18,8 @@ dependencies {
     implementation 'io.quarkus:quarkus-rest-client-jackson'
     implementation 'io.quarkus:quarkus-arc'
     testImplementation 'io.quarkus:quarkus-junit'
+    testImplementation 'io.quarkus:quarkus-junit-mockito'
+    testImplementation 'io.rest-assured:rest-assured'
 }
 
 group = 'org.acme'
@@ -32,6 +34,12 @@ java {
 compileJava {
     options.encoding = 'UTF-8'
     options.compilerArgs << '-parameters'
+}
+
+test {
+	useJUnitPlatform()
+	
+	exclude '**/*IT.class'
 }
 
 compileTestJava {
