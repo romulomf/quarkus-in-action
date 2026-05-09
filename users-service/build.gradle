@@ -10,37 +10,29 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.quarkus:quarkus-oidc'
+    implementation 'io.quarkus:quarkus-rest-client-oidc-token-propagation'
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
-    implementation 'io.quarkus:quarkus-smallrye-graphql-client'
+    implementation 'io.quarkus:quarkus-qute'
+    implementation 'io.quarkus:quarkus-rest-qute'
     implementation 'io.quarkus:quarkus-config-yaml'
-    implementation 'io.quarkus:quarkus-smallrye-openapi'
-    implementation 'io.quarkus:quarkus-rest-jackson'
     implementation 'io.quarkus:quarkus-rest-client-jackson'
+    implementation 'io.quarkus:quarkus-oidc'
     implementation 'io.quarkus:quarkus-arc'
     testImplementation 'io.quarkus:quarkus-junit'
-    testImplementation 'io.quarkus:quarkus-junit-mockito'
-    testImplementation 'io.rest-assured:rest-assured'
 }
 
 group = 'org.acme'
 version = '0.1.0-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(25)
-	}
+    toolchain {
+    	languageVersion = JavaLanguageVersion.of(25)
+    }
 }
 
 compileJava {
     options.encoding = 'UTF-8'
     options.compilerArgs << '-parameters'
-}
-
-test {
-	useJUnitPlatform()
-	
-	exclude '**/*IT.class'
 }
 
 compileTestJava {
@@ -49,8 +41,10 @@ compileTestJava {
 
 eclipse {
 	project {
-		name = 'reservation-service'
-		comment = 'Acme Reservation Service'
+		name = 'users-service'
+		comment = 'Acme Users Service'
+		
+		natures 'io.quarkus.eclipse.core.quarkusNature'
 	}
 	
 	jdt {
@@ -61,6 +55,12 @@ eclipse {
 	classpath {
 		downloadSources = false
 		downloadJavadoc = true
+	}
+	
+	wtp {
+		facet {
+			facet name: 'io.quarkus.eclipse.core.quarkusFacet', version: '1.0'
+		}
 	}
 }
 

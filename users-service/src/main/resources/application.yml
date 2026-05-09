@@ -1,0 +1,11 @@
+quarkus:
+  http:
+    auth:
+      permission:
+        all-resources:
+          paths: /*
+          policy: authenticated
+  oidc:
+    application-type: web_app
+    logout:
+      path: /logout

@@ -18,12 +18,14 @@ import org.jboss.resteasy.reactive.RestQuery;
 
 import io.quarkus.logging.Log;
 import io.smallrye.graphql.client.GraphQLClient;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.SecurityContext;
 
 @Path("reservation")
 @Produces(MediaType.APPLICATION_JSON)
@@ -35,16 +37,27 @@ public class ReservationResource {
 
 	private final RentalClient rentalClient;
 
-	public ReservationResource(ReservationRepository reservationsRepository, @GraphQLClient("inventory") GraphQLInventoryClient inventoryClient, @RestClient RentalClient rentalClient) {
+	private final SecurityContext context;
+
+	@Inject
+	public ReservationResource(ReservationRepository reservationsRepository, @GraphQLClient("inventory") GraphQLInventoryClient inventoryClient, @RestClient RentalClient rentalClient, SecurityContext securityContext) {
 		super();
 		this.reservationsRepository = reservationsRepository;
 		this.inventoryClient = inventoryClient;
 		this.rentalClient = rentalClient;
+		this.context = securityContext;
+	}
+
+	@GET
+	@Path("all")
+	public Collection<Reservation> allReservations() {
+		String userId = context.getUserPrincipal() != null ? context.getUserPrincipal().getName() : null;
+		return reservationsRepository.findAll().stream().filter(reservation -> userId == null || userId.equals(reservation.userId)).toList();
 	}
 
 	@GET
 	@Path("availability")
-	public Collection<Car> availability(@RestQuery LocalDate startDay, @RestQuery LocalDate endDay) {
+	public Collection<Car> availability(@RestQuery LocalDate startDate, @RestQuery LocalDate endDate) {
 		// obtain all cars from inventory
 		List<Car> availableCars = inventoryClient.allCars();
 		// create a map from id to car
@@ -56,7 +69,7 @@ public class ReservationResource {
 		List<Reservation> reservations = reservationsRepository.findAll();
 		// for each reservation, remove the car from the map
 		for (Reservation reservation : reservations) {
-			if (reservation.isReserved(startDay, endDay)) {
+			if (reservation.isReserved(startDate, endDate)) {
 				carsById.remove(reservation.carId);
 			}
 		}
@@ -66,6 +79,7 @@ public class ReservationResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Reservation make(Reservation reservation) {
+		reservation.userId = context.getUserPrincipal() != null ? context.getUserPrincipal().getName() : "anonymous";
 		Reservation result = reservationsRepository.save(reservation);
 		// this is just a dummy value for the time being
 		String userId = "x";

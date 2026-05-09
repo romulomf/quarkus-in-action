@@ -12,6 +12,8 @@ public class Reservation {
 
 	public LocalDate endDay;
 
+	public String userId;
+
 	/**
 	 * Check if the given duration overlaps with this reservation.
 	 * 
