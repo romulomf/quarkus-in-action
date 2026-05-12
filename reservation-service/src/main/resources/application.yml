@@ -1,11 +1,20 @@
 quarkus:
   application:
     name: Reservation Service
+  datasource:
+    db-kind: postgresql
+    username: user
+    password: pass
+  hibernate-orm:
+    database:
+      generation: drop-and-create
   http:
     port: 8081
     test-port: 8181
   oidc:
     application-type: service
+    devservices:
+      enabled: true
   smallrye-graphql-client:
     inventory:
       url: http://localhost:8083/graphql

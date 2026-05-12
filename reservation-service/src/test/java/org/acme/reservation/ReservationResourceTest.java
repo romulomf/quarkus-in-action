@@ -47,8 +47,8 @@ class ReservationResourceTest {
 		String endDate = "2022-01-10";
 		// List available ars for our requested timeslot and choose one
 		Car[] cars = RestAssured.given()
-				.queryParam("startDay", startDate)
-				.queryParam("endDay", endDate)
+				.queryParam("startDate", startDate)
+				.queryParam("endDate", endDate)
 				.when().get(availability)
 				.then().statusCode(200)
 				.extract().as(Car[].class);
@@ -67,8 +67,8 @@ class ReservationResourceTest {
 			.body("carId", is(car.id.intValue()));
 		// Verify that this car doesn't show as available anymore
 		RestAssured.given()
-			.queryParam("startDay", startDate)
-			.queryParam("endDay", endDate)
+			.queryParam("startDate", startDate)
+			.queryParam("endDate", endDate)
 			.when().get(availability)
 			.then().statusCode(200)
 			.body("findAll {car -> car.id == " + car.id + "}", hasSize(0));
