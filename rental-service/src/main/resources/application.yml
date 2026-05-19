@@ -3,3 +3,9 @@ quarkus:
     name: Rental Service
   http:
     port: 8082
+  mongodb:
+    database: rental
+"%prod":
+  quarkus:
+    mongodb:
+      connection-string: mongodb://mongo:27017

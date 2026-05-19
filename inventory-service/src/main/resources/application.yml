@@ -1,5 +1,12 @@
 quarkus:
   application:
     name: Inventory Service
+  datasource:
+    db-kind: mysql
+    username: user
+    password: pass
+  hibernate-orm:
+    database:
+      generation: drop-and-create
   http:
     port: 8083

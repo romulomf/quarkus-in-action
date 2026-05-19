@@ -6,11 +6,12 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 
 import io.smallrye.graphql.client.typesafe.api.GraphQLClientApi;
+import io.smallrye.mutiny.Uni;
 
 @GraphQLApi
 @GraphQLClientApi(configKey = "inventory")
 public interface GraphQLInventoryClient extends InventoryClient {
 
 	@Query("cars")
-	List<Car> allCars();
+	Uni<List<Car>> allCars();
 }

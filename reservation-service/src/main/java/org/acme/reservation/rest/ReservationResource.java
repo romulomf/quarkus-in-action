@@ -6,18 +6,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.acme.reservation.entity.Reservation;
 import org.acme.reservation.inventory.Car;
 import org.acme.reservation.inventory.GraphQLInventoryClient;
 import org.acme.reservation.inventory.InventoryClient;
-import org.acme.reservation.rental.Rental;
 import org.acme.reservation.rental.RentalClient;
-import org.acme.reservation.reservation.Reservation;
-import org.acme.reservation.reservation.ReservationRepository;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestQuery;
 
+import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
+import io.quarkus.hibernate.reactive.panache.common.WithTransaction;
 import io.quarkus.logging.Log;
 import io.smallrye.graphql.client.GraphQLClient;
+import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -31,8 +32,6 @@ import jakarta.ws.rs.core.SecurityContext;
 @Produces(MediaType.APPLICATION_JSON)
 public class ReservationResource {
 
-	private final ReservationRepository reservationsRepository;
-
 	private final InventoryClient inventoryClient;
 
 	private final RentalClient rentalClient;
@@ -40,9 +39,8 @@ public class ReservationResource {
 	private final SecurityContext context;
 
 	@Inject
-	public ReservationResource(ReservationRepository reservationsRepository, @GraphQLClient("inventory") GraphQLInventoryClient inventoryClient, @RestClient RentalClient rentalClient, SecurityContext securityContext) {
+	public ReservationResource(@GraphQLClient("inventory") GraphQLInventoryClient inventoryClient, @RestClient RentalClient rentalClient, SecurityContext securityContext) {
 		super();
-		this.reservationsRepository = reservationsRepository;
 		this.inventoryClient = inventoryClient;
 		this.rentalClient = rentalClient;
 		this.context = securityContext;
@@ -50,44 +48,65 @@ public class ReservationResource {
 
 	@GET
 	@Path("all")
-	public Collection<Reservation> allReservations() {
+	public Uni<List<Reservation>> allReservations() {
 		String userId = context.getUserPrincipal() != null ? context.getUserPrincipal().getName() : null;
-		return reservationsRepository.findAll().stream().filter(reservation -> userId == null || userId.equals(reservation.userId)).toList();
+		return PanacheEntityBase.<Reservation>listAll()
+				.onItem()
+				.transform(reservations -> reservations.stream().filter(reservation -> userId == null || userId.equals(reservation.userId)).toList());
 	}
 
 	@GET
 	@Path("availability")
-	public Collection<Car> availability(@RestQuery LocalDate startDate, @RestQuery LocalDate endDate) {
+	public Uni<Collection<Car>> availability(@RestQuery LocalDate startDate, @RestQuery LocalDate endDate) {
 		// obtain all cars from inventory
-		List<Car> availableCars = inventoryClient.allCars();
-		// create a map from id to car
-		Map<Long, Car> carsById = new HashMap<>();
-		for (Car car : availableCars) {
-			carsById.put(car.id, car);
-		}
+		Uni<List<Car>> availableCarsUni = inventoryClient.allCars();		
 		// get all current reservations
-		List<Reservation> reservations = reservationsRepository.findAll();
-		// for each reservation, remove the car from the map
-		for (Reservation reservation : reservations) {
-			if (reservation.isReserved(startDate, endDate)) {
-				carsById.remove(reservation.carId);
-			}
-		}
-		return carsById.values();
+		Uni<List<Reservation>> reservationsUni = Reservation.listAll();
+		/**
+		 * combina os resultados das chamadas assíncronas para obter os carros
+		 * do inventário e a lista de reservas do banco de dados, onde ambas as
+		 * requisições foram feitas de forma assíncrona e processa quando tudo
+		 * tiver retornado nesse mecanismo de combinação de combine() de resultados
+		 * assíncronos.
+		 */
+		return Uni.combine().all().unis(availableCarsUni, reservationsUni)
+				.with((availableCars, reservations) -> {					
+					// create a map from id to car
+					Map<Long, Car> carsById = new HashMap<>();
+					for (Car car : availableCars) {
+						carsById.put(car.id, car);
+					}
+					// for each reservation, remove the car from the map
+					for (Reservation reservation : reservations) {
+						if (reservation.isReserved(startDate, endDate)) {
+							carsById.remove(reservation.carId);
+						}
+					}
+					return carsById.values();
+				});
 	}
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Reservation make(Reservation reservation) {
+	@WithTransaction
+	public Uni<Reservation> make(Reservation reservation) {
 		reservation.userId = context.getUserPrincipal() != null ? context.getUserPrincipal().getName() : "anonymous";
-		Reservation result = reservationsRepository.save(reservation);
-		// this is just a dummy value for the time being
-		String userId = "x";
-		if (reservation.startDay.equals(LocalDate.now())) {
-			Rental rental = rentalClient.start(userId, result.id);
-			Log.infof("Successfully started rental %s", rental);
-		}
-		return result;
-
+		/**
+		 * o callback call() é onde é recebido o objeto persistido assim que ele estiver
+		 * pronto, isto é, após ele ter sido gravado no banco de dados onde pode ser feito
+		 * um pós processamento.
+		 */
+		return reservation.<Reservation>persist()
+				.onItem()
+				.call(persistedReservation -> {
+					Log.infof("Successfully reserved reservation %s", reservation);
+					if (reservation.startDay.equals(LocalDate.now())) {
+						return rentalClient.start(persistedReservation.userId, persistedReservation.id)
+								.onItem()
+								.invoke(rental -> Log.infof("Successfully started rental %s", rental))
+								.replaceWith(persistedReservation);
+					}
+					return Uni.createFrom().item(persistedReservation);
+				});
 	}
 }

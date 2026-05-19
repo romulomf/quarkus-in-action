@@ -5,6 +5,8 @@ quarkus:
     db-kind: postgresql
     username: user
     password: pass
+    devservices:
+      port: 5432
   hibernate-orm:
     database:
       generation: drop-and-create
@@ -18,3 +20,8 @@ quarkus:
   smallrye-graphql-client:
     inventory:
       url: http://localhost:8083/graphql
+"%prod":
+  quarkus:
+    datasource:
+      reactive:
+        url: vertx-reactive:postgresql://localhost:5432/reservation
