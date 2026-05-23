@@ -1,12 +1,19 @@
 package org.acme.rental;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
-import java.util.Optional;
 
+import org.acme.rental.billing.InvoiceAdjust;
 import org.acme.rental.entity.Rental;
+import org.acme.rental.reservation.Reservation;
+import org.acme.rental.reservation.ReservationClient;
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import io.quarkus.logging.Log;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
@@ -15,6 +22,20 @@ import jakarta.ws.rs.Path;
 
 @Path("/rental")
 public class RentalResource {
+
+	public static final double STANDARD_REFUND_RATE_PER_DAY = -10.99d;
+	
+	public static final double STANDARD_PRICE_FOR_PROLONGED_DAY = 25.99d;
+
+	private final ReservationClient reservationClient;
+
+	private final Emitter<InvoiceAdjust> adjustmentEmitter;
+
+	@Inject
+	public RentalResource(@RestClient ReservationClient reservationClient, @Channel("invoices-adjust") Emitter<InvoiceAdjust> adjustmentEmitter) {
+		this.reservationClient = reservationClient;
+		this.adjustmentEmitter = adjustmentEmitter;
+	}
 
 	@POST
 	@Path("/start/{userId}/{reservationId}")
@@ -29,15 +50,17 @@ public class RentalResource {
 	@Path("/end/{userId}/{reservationId}")
 	public Rental end(String userId, Long reservationId) {
 		Log.infof("Ending rental for %s with reservation %s", userId, reservationId);
-		Optional<Rental> optionalRental = Rental.findByUserAndReservationIdsOptional(userId, reservationId);
-		if (optionalRental.isPresent()) {
-			Rental rental = optionalRental.get();
-			rental.endDate = LocalDate.now();
-			rental.active = false;
-			rental.update();
-			return rental;
+		Rental rental = Rental.findByUserAndReservationIdsOptional(userId, reservationId).orElseThrow(() -> new NotFoundException("Rental not found"));
+		LocalDate today = LocalDate.now();
+		Reservation reservation = reservationClient.getById(reservationId);
+		if (!reservation.endDay.isEqual(today)) {
+			Log.infof("Adjusting price for rental %s. Original reservation end day was %s.", rental, reservation.endDay);
+			adjustmentEmitter.send(new InvoiceAdjust(rental.id.toString(), userId, today, computePrice(reservation.endDay, today)));
 		}
-		throw new NotFoundException("Rental not found");
+		rental.endDate = today;
+		rental.active = false;
+		rental.update();
+		return rental;
 	}
 
 	@GET
@@ -49,5 +72,11 @@ public class RentalResource {
 	@Path("/active")
 	public List<Rental> listActive() {
 		return Rental.listActive();
+	}
+
+	private double computePrice(LocalDate endDate, LocalDate today) {
+		return endDate.isBefore(today)
+				? Period.between(endDate, today).getDays() * STANDARD_PRICE_FOR_PROLONGED_DAY
+				: Period.between(today, endDate).getDays() * STANDARD_REFUND_RATE_PER_DAY; 
 	}
 }

@@ -10,12 +10,17 @@ repositories {
 }
 
 dependencies {
+    implementation 'io.quarkus:quarkus-rest-client-jackson'
+    implementation 'io.quarkus:quarkus-messaging-kafka'
     implementation 'io.quarkus:quarkus-mongodb-panache'
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
     implementation 'io.quarkus:quarkus-config-yaml'
     implementation 'io.quarkus:quarkus-rest-jackson'
     implementation 'io.quarkus:quarkus-arc'
+    testImplementation 'io.rest-assured:rest-assured'
     testImplementation 'io.quarkus:quarkus-junit'
+    testImplementation 'io.quarkus:quarkus-junit-mockito'
+    testImplementation 'io.quarkus:quarkus-test-kafka-companion'
 }
 
 group = 'org.acme'
