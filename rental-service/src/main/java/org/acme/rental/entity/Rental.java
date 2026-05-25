@@ -10,11 +10,13 @@ import io.quarkus.mongodb.panache.common.MongoEntity;
 @MongoEntity(collection = "Rentals")
 public class Rental extends PanacheMongoEntity {
 
+	public boolean paid;
+
 	public String userId;
 
 	public Long reservationId;
 
-	public LocalDate starDate;
+	public LocalDate startDate;
 
 	public LocalDate endDate;
 
@@ -28,14 +30,14 @@ public class Rental extends PanacheMongoEntity {
 		this();
 		this.userId = userId;
 		this.reservationId = reservationId;
-		this.starDate = startDate;
+		this.startDate = startDate;
 		this.endDate = endDate;
 		this.active = active;
 	}
 
 	@Override
 	public String toString() {
-		return String.format("Rental{id=%s, userId=%s, reservationId=%d, startDate=%s, endDate=%s, active=%s}", id, userId, reservationId, starDate, endDate, active);
+		return String.format("Rental{paid = %b, id=%s, userId=%s, reservationId=%d, startDate=%s, endDate=%s, active=%s}", paid, id, userId, reservationId, startDate, endDate, active);
 	}
 
 	public static Optional<Rental> findByUserAndReservationIdsOptional(String userId, Long reservationId) {

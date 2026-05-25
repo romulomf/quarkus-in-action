@@ -15,11 +15,19 @@ quarkus:
     test-port: 8181
   oidc:
     application-type: service
-    devservices:
-      enabled: true
   smallrye-graphql-client:
     inventory:
       url: http://localhost:8083/graphql
+"%test":
+  mp:
+    messaging:
+      incoming:
+        invoices-rabbitmq:
+          connector: smallrye-rabbitmq
+          queue:
+            name: invoices
+          exchange:
+            name: invoices
 "%prod":
   quarkus:
     datasource:

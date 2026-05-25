@@ -17,7 +17,6 @@ import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestQuery;
 
-import io.quarkus.hibernate.reactive.panache.PanacheEntityBase;
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction;
 import io.quarkus.logging.Log;
 import io.smallrye.graphql.client.GraphQLClient;
@@ -42,7 +41,7 @@ public class ReservationResource {
 
 	private final SecurityContext context;
 
-	private static final double STANDARD_RATE_PER_DAY = 19.99d;
+	public static final double STANDARD_RATE_PER_DAY = 19.99d;
 
 	@Channel("invoices")
 	private MutinyEmitter<Invoice> invoiceEmitter;
@@ -59,7 +58,7 @@ public class ReservationResource {
 	@Path("all")
 	public Uni<List<Reservation>> allReservations() {
 		String userId = context.getUserPrincipal() != null ? context.getUserPrincipal().getName() : null;
-		return PanacheEntityBase.<Reservation>listAll()
+		return Reservation.<Reservation>listAll()
 				.onItem()
 				.transform(reservations -> reservations.stream().filter(reservation -> userId == null || userId.equals(reservation.userId)).toList());
 	}

@@ -3,6 +3,7 @@ package org.acme.rental;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
+import java.util.Optional;
 
 import org.acme.rental.billing.InvoiceAdjust;
 import org.acme.rental.entity.Rental;
@@ -41,8 +42,22 @@ public class RentalResource {
 	@Path("/start/{userId}/{reservationId}")
 	public Rental start(String userId, Long reservationId) {
 		Log.infof("Starting rental for %s with reservation %s", userId, reservationId);
-		Rental rental = new Rental(userId, reservationId, LocalDate.now(), null, true);
-		rental.persist();
+		Optional<Rental> rentalOptional = Rental.findByUserAndReservationIdsOptional(userId, reservationId);
+		Rental rental;
+		if (rentalOptional.isPresent()) {
+			// received confirmed invoice before
+			rental = rentalOptional.get();
+			rental.active = true;
+			rental.update();
+		} else {
+			// rental starting right now before payment
+			rental = new Rental();
+			rental.userId = userId;
+			rental.reservationId = reservationId;
+			rental.startDate = LocalDate.now();
+			rental.active = true;
+			rental.persist();
+		}
 		return rental;
 	}
 
@@ -51,6 +66,10 @@ public class RentalResource {
 	public Rental end(String userId, Long reservationId) {
 		Log.infof("Ending rental for %s with reservation %s", userId, reservationId);
 		Rental rental = Rental.findByUserAndReservationIdsOptional(userId, reservationId).orElseThrow(() -> new NotFoundException("Rental not found"));
+		if (!rental.paid) {
+			Log.warnf("Rental is not paid: %s", rental);
+			// trigger error processing
+		}
 		LocalDate today = LocalDate.now();
 		Reservation reservation = reservationClient.getById(reservationId);
 		if (!reservation.endDay.isEqual(today)) {

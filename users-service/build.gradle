@@ -43,8 +43,6 @@ eclipse {
 	project {
 		name = 'users-service'
 		comment = 'Acme Users Service'
-		
-		natures 'io.quarkus.eclipse.core.quarkusNature'
 	}
 	
 	jdt {
@@ -55,12 +53,6 @@ eclipse {
 	classpath {
 		downloadSources = false
 		downloadJavadoc = true
-	}
-	
-	wtp {
-		facet {
-			facet name: 'io.quarkus.eclipse.core.quarkusFacet', version: '1.0'
-		}
 	}
 }
 

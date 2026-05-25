@@ -10,23 +10,14 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.quarkus:quarkus-messaging-rabbitmq'
-    implementation 'io.quarkus:quarkus-messaging'
-    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
-    implementation 'io.quarkus:quarkus-hibernate-reactive-rest-data-panache'
-    implementation 'io.quarkus:quarkus-reactive-pg-client'
-    implementation 'io.quarkus:quarkus-oidc'
-    implementation 'io.quarkus:quarkus-smallrye-graphql-client'
     implementation 'io.quarkus:quarkus-config-yaml'
-    implementation 'io.quarkus:quarkus-smallrye-openapi'
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
     implementation 'io.quarkus:quarkus-rest-jackson'
-    implementation 'io.quarkus:quarkus-rest-client-jackson'
+    implementation 'io.quarkus:quarkus-messaging-rabbitmq'
+    implementation 'io.quarkus:quarkus-messaging-kafka'
+    implementation 'io.quarkus:quarkus-mongodb-panache'
     implementation 'io.quarkus:quarkus-arc'
     testImplementation 'io.quarkus:quarkus-junit'
-    testImplementation 'io.quarkus:quarkus-junit-mockito'
-    testImplementation 'io.quarkus:quarkus-test-hibernate-reactive-panache'
-    testImplementation 'io.rest-assured:rest-assured'
-    testImplementation 'org.awaitility:awaitility'
 }
 
 group = 'org.acme'
@@ -45,8 +36,6 @@ compileJava {
 
 test {
 	useJUnitPlatform()
-	
-	exclude '**/*IT.class'
 }
 
 compileTestJava {
@@ -55,8 +44,8 @@ compileTestJava {
 
 eclipse {
 	project {
-		name = 'reservation-service'
-		comment = 'Acme Reservation Service'
+		name = 'billing-service'
+		comment = 'Acme Billing Service'
 	}
 	
 	jdt {

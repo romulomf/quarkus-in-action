@@ -1,0 +1,18 @@
+quarkus:
+  http:
+    port: 8084
+  mongodb:
+    database: billing
+mp:
+  messaging:
+    incoming:
+      invoices:
+        connector: smallrye-rabbitmq
+      invoices-adjust:
+        auto:
+          offset:
+            reset: earlist
+        connector: smallrye-kafka
+    outgoing:
+      invoices-confirmations:
+        connector: smallrye-kafka
