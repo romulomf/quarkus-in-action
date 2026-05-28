@@ -1,4 +1,6 @@
 quarkus:
+  application:
+    name: Users Service
   http:
     auth:
       permission:
