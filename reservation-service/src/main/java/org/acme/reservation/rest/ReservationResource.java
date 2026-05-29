@@ -3,6 +3,7 @@ package org.acme.reservation.rest;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,8 @@ import org.acme.reservation.inventory.Car;
 import org.acme.reservation.inventory.GraphQLInventoryClient;
 import org.acme.reservation.inventory.InventoryClient;
 import org.acme.reservation.rental.RentalClient;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestQuery;
@@ -63,6 +66,8 @@ public class ReservationResource {
 				.transform(reservations -> reservations.stream().filter(reservation -> userId == null || userId.equals(reservation.userId)).toList());
 	}
 
+	@Retry(maxRetries = 25, delay = 1000)
+	@Fallback(fallbackMethod = "availabilityFallback")
 	@GET
 	@Path("availability")
 	public Uni<Collection<Car>> availability(@RestQuery LocalDate startDate, @RestQuery LocalDate endDate) {
@@ -92,6 +97,14 @@ public class ReservationResource {
 					}
 					return carsById.values();
 				});
+	}
+
+	/**
+	 * Serve como fallback, como o retorno alternativo em caso de falha do método
+	 * original {@link #availability(LocalDate, LocalDate)}.
+	 */
+	public Uni<Collection<Car>> availabilityFallback(LocalDate startDate, LocalDate endDate) {
+		return Uni.createFrom().item(Collections.emptyList());
 	}
 
 	@POST
