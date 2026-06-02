@@ -24,7 +24,16 @@ class ReservationPersistenceTest {
 			Assertions.assertNotNull(r.id);
 			asserter.putData("reservation.id", r.id);
 		});
-		asserter.assertEquals(Reservation::count, 1L);
+		/**
+		 * Por mais que o SonarLint reclame, não dá para usar
+		 * Reservation::count como ele sugere, por incompatibilidade
+		 * dos métodos gerados pelo panache que se perde na hora de
+		 * chamar Reservation::count. Usar essas experessões por algum
+		 * motivo faz o Panache se perder e chamar a implementação base
+		 * de PanacheEntityBase ao invés da classe que descende dela
+		 * que neste caso é Reservation.
+		 */
+		asserter.assertEquals(() -> Reservation.count(), 1L);
 		asserter.assertThat(() -> Reservation.<Reservation>findById(asserter.getData("reservation.id")), persistedReservation -> {
 			Assertions.assertNotNull(persistedReservation);
 			Assertions.assertEquals(reservation.carId, persistedReservation.carId);

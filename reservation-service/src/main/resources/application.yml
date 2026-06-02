@@ -5,16 +5,21 @@ quarkus:
     db-kind: postgresql
     username: user
     password: pass
-    devservices:
-      port: 5432
   hibernate-orm:
-    database:
-      generation: drop-and-create
+    schema-management:
+      strategy: drop-and-create
   http:
     port: 8081
     test-port: 8181
   oidc:
     application-type: service
+    auth-server-url: http://localhost:7777/realms/car-rental
+    client-id: reservation-service
+    token-state-manager:
+      split-tokens: true
+  rest-client:
+    rental:
+      url: http://localhost:8082
   smallrye-graphql-client:
     inventory:
       url: http://localhost:8083/graphql
@@ -33,3 +38,13 @@ quarkus:
     datasource:
       reactive:
         url: vertx-reactive:postgresql://localhost:5432/reservation
+    oidc:
+      auth-server-url: http://localhost:7777/realms/car-rental
+      client-id: reservation-service
+      token-state-manager:
+        split-tokens: true
+  rabbitmq-host: localhost
+  rabbitmq-port: 5672
+  rabbitmq-http-port: 15672
+  rabbitmq-username: guest
+  rabbitmq-password: guest

@@ -5,7 +5,13 @@ quarkus:
     port: 8082
   mongodb:
     database: rental
+  rest-client:
+    reservations:
+      url: http://localhost:8081
 "%prod":
   quarkus:
     mongodb:
       connection-string: mongodb://mongo:27017
+  kafka:
+    bootstrap:
+      servers: localhost:9092

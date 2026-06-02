@@ -11,8 +11,17 @@ mp:
       invoices-adjust:
         auto:
           offset:
-            reset: earlist
+            reset: earliest
         connector: smallrye-kafka
     outgoing:
       invoices-confirmations:
         connector: smallrye-kafka
+"%prod":
+  kafka:
+    bootstrap:
+      servers: localhost:9092
+    rabbitmq-host: localhost
+    rabbitmq-port: 5672
+    rabbitmq-http-port: 15672
+    rabbitmq-username: guest
+    rabbitmq-password: guest

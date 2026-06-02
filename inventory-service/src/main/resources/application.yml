@@ -6,7 +6,16 @@ quarkus:
     username: user
     password: pass
   hibernate-orm:
-    database:
-      generation: drop-and-create
+    schema-management:
+      strategy: drop-and-create
+    sql-load-script: import.sql
   http:
     port: 8083
+  smallrye-graphql:
+    ui:
+      always-include: true
+"%prod":
+  quarkus:
+    datasource:
+      jdbc:
+        url: jdbc:mysql://localhost:3306/inventory

@@ -11,3 +11,13 @@ quarkus:
     application-type: web_app
     logout:
       path: /logout
+  rest-client:
+    reservations:
+      url: http://localhost:8081
+"%prod":
+  quarkus:
+    oidc:
+      auth-server-url: http://localhost:7777/realms/car-rental
+      client-id: users-service
+      token-state-manager:
+        split-tokens: true
