@@ -1,6 +1,10 @@
 quarkus:
   application:
     name: Reservation Service
+  container-image:
+    group: romulomf
+    name: reservation-service
+    registry: quay.io
   datasource:
     db-kind: postgresql
     username: user

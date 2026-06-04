@@ -1,6 +1,10 @@
 quarkus:
   application:
     name: Inventory Service
+  container-image:
+    group: romulomf
+    name: inventory-service
+    registry: quay.io
   datasource:
     db-kind: mysql
     username: user

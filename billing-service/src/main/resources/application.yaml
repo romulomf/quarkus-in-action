@@ -1,4 +1,10 @@
 quarkus:
+  application:
+    name: Billing Service
+  container-image:
+    group: romulomf
+    name: billing-service
+    registry: quay.io
   http:
     port: 8084
   mongodb:

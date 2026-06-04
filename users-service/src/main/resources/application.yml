@@ -1,6 +1,10 @@
 quarkus:
   application:
     name: Users Service
+  container-image:
+    group: romulomf
+    name: users-service
+    registry: quay.io
   http:
     auth:
       permission:

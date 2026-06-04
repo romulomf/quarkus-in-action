@@ -1,6 +1,10 @@
 quarkus:
   application:
     name: Rental Service
+  container-image:
+    group: romulomf
+    name: rental-service
+    registry: quay.io
   http:
     port: 8082
   mongodb:

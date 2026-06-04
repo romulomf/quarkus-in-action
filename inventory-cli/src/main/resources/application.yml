@@ -1,4 +1,10 @@
 quarkus:
+  application:
+    name: Inventory CLI
+  container-image:
+    group: romulomf
+    name: inventory-cli
+    registry: quay.io
   grpc:
     clients:
       inventory:
