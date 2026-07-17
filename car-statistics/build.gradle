@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+    id 'io.quarkus'
+    id 'eclipse-wtp'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation 'io.quarkus:quarkus-funqy-http'
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation 'io.quarkus:quarkus-config-yaml'
+    implementation 'io.quarkus:quarkus-openshift'
+    implementation 'io.quarkus:quarkus-smallrye-graphql-client'
+    implementation 'io.quarkus:quarkus-arc'
+    testImplementation 'io.quarkus:quarkus-junit'
+}
+
+group = 'org.acme'
+version = '0.1.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('eclipse') {
+	doLast {
+		def prefsDir = file(".settings")
+		if(!prefsDir.exists())
+			prefsDir.mkdirs()
+		def resourcePrefs = file(".settings/org.eclipse.core.resources.prefs")
+		resourcePrefs.text = "eclipse.preferences.version=1\nencoding/<project>=UTF-8"
+	}
+}

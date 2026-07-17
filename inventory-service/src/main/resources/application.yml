@@ -2,6 +2,7 @@ quarkus:
   application:
     name: Inventory Service
   container-image:
+    builder: openshift
     group: romulomf
     name: inventory-service
     registry: quay.io
@@ -15,6 +16,16 @@ quarkus:
     sql-load-script: import.sql
   http:
     port: 8083
+  kubernetes:
+    env:
+      vars:
+        quarkus-datasource-jdbc-url: jdbc:mysql://mysql:3306/inventory
+    name: inventory-service
+    namespace: default
+    prometheus:
+      generate-service-monitor: false
+    route:
+      expose: true
   smallrye-graphql:
     ui:
       always-include: true

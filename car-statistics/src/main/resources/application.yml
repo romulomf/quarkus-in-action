@@ -1,0 +1,15 @@
+quarkus:
+  application:
+    name: Car Statistics
+  container-image:
+    group: romulomf
+    name: car-statistics
+    registry: image-registry.openshift-image-registry.svc:5000
+  knative:
+    revision-auto-scalling:
+      container-concurrency: 2
+  kubernetes:
+    deployment-target: knative
+  smallrye-graphql-client:
+    inventory:
+      url: http://localhost:8083/graphql
